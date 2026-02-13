@@ -44,7 +44,7 @@ class ChatViewModel : ViewModel() {
                     _connected.value = true
 
                     stomp.unsubscribe()
-                    stomp.subscribe("/topic/messages")
+                    stomp.subscribe("/topic/rooms/room1")
                     stomp.subscribe("/topic/heartbeat")
 
                     Timber.i("Connected to STOMP server")
@@ -63,12 +63,13 @@ class ChatViewModel : ViewModel() {
                 }
 
                 is StompEvent.Message -> {
-                    if (event.destination == "/topic/messages") {
+                    if (event.destination == "/topic/rooms/room1") {
                         try {
                             val json = org.json.JSONObject(event.body)
+                            val sender = json.getString("sender")
                             val content = json.getString("content")
 
-                            _messages.value += ChatMessage(deviceName, content)
+                            _messages.value += ChatMessage(sender, content)
                         } catch (_: Exception) {}
                     }
 
@@ -86,10 +87,10 @@ class ChatViewModel : ViewModel() {
         stomp.connect()
     }
 
-    fun sendMessage(sender: String, content: String) {
+    fun sendMessage(content: String) {
         val request = ChatRequest(deviceName, content).toJsonString()
 
-        stomp.send("/app/chat.send", request)
+        stomp.send("/app/chat.send/room1", request)
     }
 
     override fun onCleared() {

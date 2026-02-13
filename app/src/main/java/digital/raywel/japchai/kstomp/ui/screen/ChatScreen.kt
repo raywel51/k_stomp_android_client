@@ -1,27 +1,32 @@
 package digital.raywel.japchai.kstomp.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,14 +38,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import digital.raywel.japchai.kstomp.model.ChatMessage
+import digital.raywel.japchai.kstomp.R
+import digital.raywel.japchai.kstomp.ui.component.ChatBubble
 import digital.raywel.japchai.kstomp.ui.viewmodel.ChatViewModel
 
 @Composable
@@ -55,6 +65,8 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
 
     val listState = rememberLazyListState()
 
+    val enabled = text.isNotBlank()
+
     // auto scroll when new message arrives
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
@@ -66,6 +78,10 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
     val cardColor = if (darkMode) Color(0xFF1F2937) else Color.White
     val textColor = if (darkMode) Color.White else Color.Black
     val inputBg = if (darkMode) Color(0xFF374151) else Color.White
+
+    val interactionSource = remember { MutableInteractionSource() }
+
+    val pillShape: Shape = RoundedCornerShape(999.dp)
 
     Column(
         modifier = Modifier
@@ -137,98 +153,85 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .imePadding()
+                .navigationBarsPadding()
                 .padding(horizontal = 12.dp)
         ) {
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
+                BasicTextField(
                     value = text,
                     onValueChange = { text = it },
-                    modifier = Modifier.weight(1f),
-                    label = { Text("Type a message") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .shadow(
+                            elevation = 10.dp,
+                            shape = pillShape,
+                            ambientColor = Color.Black.copy(alpha = 0.10f),
+                            spotColor = Color.Black.copy(alpha = 0.10f)
+                        )
+                        .clip(pillShape)
+                        .background(inputBg)
+                        .border(
+                            width = 1.dp,
+                            color = if (darkMode) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.10f),
+                            shape = pillShape
+                        )
+                        .padding(horizontal = 16.dp),
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Send
+                    cursorBrush = SolidColor(Color(0xFF4F46E5)),
+                    textStyle = TextStyle(
+                        color = textColor,
+                        fontSize = 15.sp
                     ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions(
                         onSend = {
-                            if (name.isNotBlank() && text.isNotBlank()) {
-                                viewModel.sendMessage(name.trim(), text.trim())
+                            if (text.isNotBlank()) {
+                                viewModel.sendMessage(text.trim())
                                 text = ""
                             }
                         }
                     ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = textColor,
-                        unfocusedTextColor = textColor,
-                        focusedContainerColor = inputBg,
-                        unfocusedContainerColor = inputBg
-                    )
+                    decorationBox = { innerTextField ->
+                        Box(
+                            modifier = Modifier.fillMaxHeight(),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (text.isBlank()) {
+                                Text(
+                                    text = "Type a message…",
+                                    color = textColor.copy(alpha = 0.45f),
+                                    fontSize = 15.sp
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
                 )
 
-                Button(
+                IconButton(
                     onClick = {
-                        viewModel.sendMessage(name.trim(), text.trim())
+                        viewModel.sendMessage(text.trim())
                         text = ""
-                    }
+                    },
+                    enabled = enabled
                 ) {
-                    Text("Send")
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_send),
+                        contentDescription = "Send",
+                        tint = if (enabled) Color(0xFF4F46E5) else Color.Gray,
+                        modifier = Modifier.size(32.dp)
+                    )
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
     }
-}
-
-@Composable
-fun ChatBubble(
-    msg: ChatMessage,
-    isMe: Boolean,
-    darkMode: Boolean
-) {
-    val bubbleColor = if (isMe) Color(0xFF4F46E5)
-    else if (darkMode) Color(0xFF374151)
-    else Color(0xFFE5E7EB)
-
-    val contentColor = if (isMe) Color.White
-    else if (darkMode) Color.White
-    else Color.Black
-
-    val time = remember(msg.ts) {
-        java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-            .format(java.util.Date(msg.ts))
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
-    ) {
-        Column(
-            modifier = Modifier
-                .widthIn(max = 280.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(bubbleColor)
-                .padding(12.dp)
-        ) {
-            Text(
-                text = "${msg.sender} • $time",
-                fontSize = 11.sp,
-                color = contentColor.copy(alpha = 0.75f)
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = msg.content,
-                fontSize = 14.sp,
-                color = contentColor
-            )
-        }
-    }
-
-    Spacer(modifier = Modifier.height(10.dp))
 }
