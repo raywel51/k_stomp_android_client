@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -70,8 +71,6 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
         modifier = Modifier
             .fillMaxSize()
             .background(bgColor)
-            .systemBarsPadding()
-            .imePadding()
     ) {
 
         // Header
@@ -134,29 +133,12 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
         // Input area
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp)
         ) {
-
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Your name") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = textColor,
-                    unfocusedTextColor = textColor,
-                    focusedContainerColor = inputBg,
-                    unfocusedContainerColor = inputBg
-                )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
