@@ -31,11 +31,15 @@ This library is designed to connect with STOMP-enabled backends such as **Spring
 Add JitPack repository:
 
 ```gradle
-repositories {
-    maven { url "https://jitpack.io" }
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
 }
 
 dependencies {
-    implementation "com.github.YOUR_GITHUB_USERNAME:YOUR_REPO_NAME:{latest_version}"
+    implementation("com.github.raywel51:k_stomp_android_client:v0.1.1")
 }
 ```
